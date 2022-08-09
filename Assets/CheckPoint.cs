@@ -16,9 +16,10 @@ public class CheckPoint : MonoBehaviour
         foreach (Transform tr in transform)
         {
             children.Add(tr);
-            NombreCheckPoint++;
-            tr.gameObject.AddComponent<IsCheckPoint>();
-            Debug.Log(NombreCheckPoint);
+            NombreCheckPoint++; //mettre à jour le nombre de chckpoint
+            tr.gameObject.AddComponent<IsCheckPoint>(); //ajouer un script pour la gestion du checkpoint
+            
         }
+        Debug.Log("tous les checkpoints ont été mis a jour ! " + NombreCheckPoint); //debug
     }
 }

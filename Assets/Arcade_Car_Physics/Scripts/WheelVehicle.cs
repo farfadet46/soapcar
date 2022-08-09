@@ -25,9 +25,9 @@ namespace VehicleBehaviour {
         public bool IsPlayer { get{ return isPlayer; } set{ isPlayer = value; } } 
 
         // Input names to read using GetAxis
-        [SerializeField] string throttleInput = "Throttle";
-        [SerializeField] string brakeInput = "Brake";
-        [SerializeField] string turnInput = "Horizontal";
+        [SerializeField] readonly string throttleInput = "Throttle";
+        [SerializeField] readonly string brakeInput = "Brake";
+        [SerializeField] readonly string turnInput = "Horizontal";
 
         /* 
          *  Turn input curve: x real input, y value used
@@ -42,6 +42,8 @@ namespace VehicleBehaviour {
         [SerializeField] WheelCollider rlWheelCollider;
         [SerializeField] WheelCollider rrWheelCollider;
 
+        [Header("Graphics")]
+        [SerializeField] GameObject rotate;
         /*
         Transform flWheel = null;
         Transform frWheel = null;
@@ -136,8 +138,8 @@ namespace VehicleBehaviour {
         public float Throttle { get{ return throttle; } set{ throttle = Mathf.Clamp(value, -1f, 1f); } } 
 
         // Like your own car handbrake, if it's true the car will not move
-        [SerializeField] bool handbrake;
-        public bool Handbrake { get{ return handbrake; } set{ handbrake = value; } } 
+       // [SerializeField] bool handbrake;
+       // public bool Handbrake { get{ return handbrake; } set{ handbrake = value; } } 
         
         // Use this to read the current car speed (you'll need this to make a speedometer)
         [SerializeField] float speed = 0.0f;
@@ -171,40 +173,42 @@ namespace VehicleBehaviour {
             wheels = GetComponentsInChildren<WheelCollider>();
 
             // Set the motor torque to a non null value because 0 means the wheels won't turn no matter what
+            /*
             foreach (WheelCollider wheel in wheels)
             {
-                wheel.motorTorque = 0.0001f;
+               wheel.motorTorque = 0.0001f;
             }
-
+            */
         }
-
 
         // Update everything
         void FixedUpdate () {
             // Mesure current speed
-            speed = transform.InverseTransformDirection(_rb.velocity).z * -3.6f; // added a - before the 3.6f to repair my wrong orienation of the car
+            speed = transform.InverseTransformDirection(_rb.velocity).z * -3.6f; // added a - before the 3.6f to repair my wrong orienation of the car (-Z forward)
             
-            if (speed <1)
+            if (speed!=0)
             {
-                speed = 0;
+            
+                //simuler la rotation des roues
+                Transform flWheel = flWheelCollider.gameObject.transform.GetChild(0);
+                Transform frWheel = frWheelCollider.gameObject.transform.GetChild(0);
+                Transform rlWheel = rlWheelCollider.gameObject.transform.GetChild(0);
+                Transform rrWheel = rrWheelCollider.gameObject.transform.GetChild(0);
+
+                // flWheel.localEulerAngles = new Vector3(flWheel.localEulerAngles.x, flWheelCollider.steerAngle - flWheel.localEulerAngles.z, flWheel.localEulerAngles.z);
+                // frWheel.localEulerAngles = new Vector3(frWheel.localEulerAngles.x, frWheelCollider.steerAngle - frWheel.localEulerAngles.z, frWheel.localEulerAngles.z);
+
+                rotate.transform.localEulerAngles = new Vector3(0,0, flWheelCollider.steerAngle);
+                
+                flWheel.Rotate((-speed*20 ) * Time.deltaTime, 0, 0);
+                frWheel.Rotate((-speed*20) * Time.deltaTime, 0, 0);
+                rlWheel.Rotate((-speed * 20) * Time.deltaTime, 0, 0);
+                rrWheel.Rotate((-speed * 20) * Time.deltaTime, 0, 0);
             }
             //System.Math.Round(speed, 2);
             speedometer.text = System.Math.Round(speed).ToString() ;
             speedometer.text = speedometer.text + " km/h";
-
-            Transform flWheel = flWheelCollider.gameObject.transform.GetChild(0);
-            Transform frWheel = frWheelCollider.gameObject.transform.GetChild(0);
-            Transform rlWheel = rlWheelCollider.gameObject.transform.GetChild(0);
-            Transform rrWheel = rrWheelCollider.gameObject.transform.GetChild(0);
-
-            flWheel.localEulerAngles = new Vector3(flWheel.localEulerAngles.x, flWheelCollider.steerAngle - flWheel.localEulerAngles.z, flWheel.localEulerAngles.z);
-            frWheel.localEulerAngles = new Vector3(frWheel.localEulerAngles.x, frWheelCollider.steerAngle - frWheel.localEulerAngles.z, frWheel.localEulerAngles.z);
-
-            flWheel.Rotate(flWheelCollider.rpm / 60 * 360 * Time.deltaTime, 0, 0);
-            frWheel.Rotate(frWheelCollider.rpm / 60 * 360 * Time.deltaTime, 0, 0);
-            rlWheel.Rotate(rlWheelCollider.rpm / 60 * 360 * Time.deltaTime, 0, 0);
-            rrWheel.Rotate(rrWheelCollider.rpm / 60 * 360 * Time.deltaTime, 0, 0);
-
+            
             // Get all the inputs!
             if (isPlayer) {
                 // Accelerate & brake
@@ -226,33 +230,9 @@ namespace VehicleBehaviour {
                 wheel.brakeTorque = 0;
             }
 
-            // Handbrake
-            if (handbrake)
-            {
-                foreach (WheelCollider wheel in wheels)
-                {
-                    // Don't zero out this value or the wheel completly lock up
-                    wheel.motorTorque = 0.0001f;
-                    wheel.brakeTorque = brakeForce;
-                }
-            }
-            else if (Mathf.Abs(speed) < 4 || Mathf.Sign(speed) == Mathf.Sign(throttle))
-            {
-                foreach (WheelCollider wheel in driveWheel)
-                {
-                    wheel.motorTorque = throttle * motorTorque.Evaluate(speed) * diffGearing / driveWheel.Length;
-                }
-            }
-            else
-            {
-                foreach (WheelCollider wheel in wheels)
-                {
-                    wheel.brakeTorque = Mathf.Abs(throttle) * brakeForce;
-                }
-            }
             _rb.AddForce(-transform.up * speed * downforce);
         }
-
+        
         // Reposition the car to the start position
         public void ResetPos() {
             transform.position = spawnPosition;
@@ -262,10 +242,6 @@ namespace VehicleBehaviour {
             _rb.angularVelocity = Vector3.zero;
         }
 
-        public void toogleHandbrake(bool h)
-        {
-            handbrake = h;
-        }
         // Use this method if you want to use your own input manager
         private float GetInput(string input)
         {

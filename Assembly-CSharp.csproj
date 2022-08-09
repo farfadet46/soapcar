@@ -54,6 +54,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Assets\Arcade_Car_Physics\Scripts\DemoScripts\CameraFollow.cs" />
+    <Compile Include="Assets\Chronos.cs" />
     <Compile Include="Assets\Arcade_Car_Physics\Scripts\Trails\Trail.cs" />
     <Compile Include="Assets\Arcade_Car_Physics\Scripts\Trails\TrailEmitter.cs" />
     <Compile Include="Assets\CheckPoint.cs" />
@@ -62,7 +63,6 @@
     <Compile Include="Assets\Event.cs" />
     <Compile Include="Assets\zone_fin.cs" />
     <Compile Include="Assets\Arcade_Car_Physics\Scripts\WheelVehicle.cs" />
-    <Compile Include="Assets\Chronos.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
